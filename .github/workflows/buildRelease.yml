@@ -49,11 +49,10 @@ jobs:
         cd sync
         ./orangefox_sync.sh --branch 12.1 --path ${GITHUB_WORKSPACE}/OrangeFox/fox_12.1
 
-    - name: Clone Device Tree
+    - name: Move device tree
       run: |
         cd ${GITHUB_WORKSPACE}/OrangeFox/fox_12.1
-        mkdir -p device/xiaomi/sweet_k6a
-        cp -r ${GITHUB_WORKSPACE}/*  ./device/xiaomi/sweet_k6a
+        git clone https://github.com/kmdtaufik/device_xiaomi_sweet_k6a-OFOX.git -b erofs-staged ./device/xiaomi/sweet_k6a
         cd device/xiaomi/sweet_k6a
         echo "COMMIT_ID=$(git rev-parse HEAD)" >> $GITHUB_ENV
 
