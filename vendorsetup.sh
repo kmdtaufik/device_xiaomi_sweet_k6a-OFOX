@@ -65,7 +65,7 @@ if [ "$1" = "$FDEVICE" -o "$FOX_BUILD_DEVICE" = "$FDEVICE" ]; then
 	export OF_ENABLE_FS_COMPRESSION=1
 
 	# Use Magisk v26.3 for the magisk addon
-	export FOX_USE_SPECIFIC_MAGISK_ZIP=$PWD/device/xiaomi/sweet_k6a/addon/Magisk-v27.0.zip
+	export FOX_USE_SPECIFIC_MAGISK_ZIP=$PWD/device/xiaomi/sweet_k6a/addon/Magisk-v28.1.zip
 
 	# OTA
 	export OF_KEEP_DM_VERITY=1
@@ -82,7 +82,7 @@ if [ "$1" = "$FDEVICE" -o "$FOX_BUILD_DEVICE" = "$FDEVICE" ]; then
 	export OF_CLOCK_POS=1
 
 	# Maintainer & Version settings
-	export FOX_VERSION="R11.1_5"
+	export FOX_VERSION="Test-erofs-1"
 	# export OF_MAINTAINER_AVATAR="$PWD/device/xiaomi/sweet_k6a/addon/avatar.png"
 	export OF_MAINTAINER="008"
 
