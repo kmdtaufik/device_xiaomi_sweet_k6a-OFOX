@@ -1,0 +1,86 @@
+name: OrangeFox - Build
+
+# Credits to:
+# https://github.com/TeamWin
+# https://gitlab.com/OrangeFox
+# https://github.com/azwhikaru for Recovery Builder Template
+# And all Contributors in every repositories I used
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - erofs-staged
+
+jobs:
+  build:
+    name: Build OrangeFox for Sweet_k6a by ${{ github.actor }}
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    permissions:
+      contents: write
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Clean-up
+      uses: rokibhasansagar/slimhub_actions@main
+
+    - name: Swap Space
+      uses: pierotofy/set-swap-space@master
+      with:
+        swap-size-gb: 24
+
+    - name: Build Environment
+      run: |
+        sudo apt install aria2 -y
+        git clone https://gitlab.com/OrangeFox/misc/scripts.git -b master
+        cd scripts
+        sudo bash setup/android_build_env.sh
+
+    - name: Set-up Manifest
+      run: |
+        mkdir -p ${GITHUB_WORKSPACE}/OrangeFox
+        cd ${GITHUB_WORKSPACE}/OrangeFox
+        git config --global user.name "${{ github.actor }}"
+        git config --global user.email "${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com"
+        git clone https://gitlab.com/OrangeFox/sync.git -b master
+        cd sync
+        ./orangefox_sync.sh --branch 12.1 --path ${GITHUB_WORKSPACE}/OrangeFox/fox_12.1
+
+    - name: Clone Device Tree
+      run: |
+        cd ${GITHUB_WORKSPACE}/OrangeFox/fox_12.1
+        mkdir -p device/xiaomi/sweet_k6a
+        cp -r ${GITHUB_WORKSPACE}/*  ./device/xiaomi/sweet_k6a
+        cd device/xiaomi/sweet_k6a
+        echo "COMMIT_ID=$(git rev-parse HEAD)" >> $GITHUB_ENV
+
+    - name: Building OrangeFox
+      run: |
+        cd ${GITHUB_WORKSPACE}/OrangeFox/fox_12.1
+        set +e
+        source build/envsetup.sh
+        export ALLOW_MISSING_DEPENDENCIES=true
+        set -e
+        lunch twrp_sweet_k6a-eng && make clean && mka adbd recoveryimage
+
+    - name: Set Release Properties
+      run: |
+        echo "BUILD_DATE=$(TZ=Asia/Manila date +%Y%m%d)" >> $GITHUB_ENV
+        cd ${GITHUB_WORKSPACE}/OrangeFox/fox_12.1
+
+    - name: Upload to Release
+      uses: softprops/action-gh-release@v2
+      with:
+        files: |
+          OrangeFox/fox_12.1/out/target/product/sweet_k6a/OrangeFox*.img
+          OrangeFox/fox_12.1/out/target/product/sweet_k6a/OrangeFox*.zip
+        name: OrangeFox Recovery for sweet_k6a // ${{ env.BUILD_DATE }}
+        tag_name: ${{ github.run_id }}
+        body: |
+          ## OrangeFox Recovery Build - Unofficial
+          Build: fox_12.1
+          Device: [Device Tree](https://github.com/kmdtaufik/device_xiaomi_sweet_k6a-OFOX.git)
+          Commit: Most recent [commit](https://github.com/kmdtaufik/device_xiaomi_sweet_k6a-OFOX.git/commit/${{ env.COMMIT_ID }}) during building.
